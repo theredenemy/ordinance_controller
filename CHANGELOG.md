@@ -2,8 +2,4 @@
 
 ## [1.0.0]
 
-### Added
-
-### Fixed
-
-### Removed
+first release

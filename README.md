@@ -5,22 +5,22 @@
   </p>
   <p style="margin-bottom: 0.5ex;">
     <img
-        src="https://img.shields.io/github/downloads//ordinance_controller/total"
+        src="https://img.shields.io/github/downloads/theredenemy/ordinance_controller/total"
     />
     <img
-        src="https://img.shields.io/github/last-commit//ordinance_controller"
+        src="https://img.shields.io/github/last-commit/theredenemy/ordinance_controller"
     />
     <img
-        src="https://img.shields.io/github/issues//ordinance_controller"
+        src="https://img.shields.io/github/issues/theredenemy/ordinance_controller"
     />
     <img
-        src="https://img.shields.io/github/issues-closed//ordinance_controller"
+        src="https://img.shields.io/github/issues-closed/theredenemy/ordinance_controller"
     />
     <img
-        src="https://img.shields.io/github/repo-size//ordinance_controller"
+        src="https://img.shields.io/github/repo-size/theredenemy/ordinance_controller"
     />
     <img
-        src="https://img.shields.io/github/workflow/status//ordinance_controller/Compile%20and%20release"
+        src="https://img.shields.io/github/workflow/status/theredenemy/ordinance_controller/Compile%20and%20release"
     />
   </p>
 </div>
@@ -33,11 +33,6 @@
 ## Installation ##
 1. Grab the latest release from the release page and unzip it in your sourcemod folder.
 2. Restart the server or type `sm plugins load ordinance_controller` in the console to load the plugin.
-3. The config file will be automatically generated in cfg/sourcemod/
-
-## Configuration ##
-- You can modify the phrases in addons/sourcemod/translations/ordinance_controller.phrases.txt.
-- Once the plugin has been loaded, you can modify the cvars in cfg/sourcemod/ordinance_controller.cfg.
 
 
 ## Usage ##
