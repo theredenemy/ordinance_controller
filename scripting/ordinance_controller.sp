@@ -7,12 +7,13 @@
 #define PLAYER_PAWN_FILE "player_pawn.txt"
 
 ConVar g_ordinance_enabled;
+char g_mapname[128];
 public Plugin myinfo =
 {
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.0.0",
+	version = "1.0.1",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -31,6 +32,17 @@ void makeConfig()
 		delete kv;
 	}
 }
+public void OnMapStart()
+{
+	g_mapname = "\0";
+	int ordinance_enabled = GetConVarInt(g_ordinance_enabled);
+	GetCurrentMap(g_mapname, sizeof(g_mapname));
+	if (StrEqual(g_mapname, "ordinance"))
+	{
+		if (ordinance_enabled == 1) {SendInput("BEGIN");}
+	}
+	
+}
 
 public void OnPluginStart()
 {
@@ -41,10 +53,27 @@ public void OnPluginStart()
 	PrintToServer("ordinance_controller Has Loaded");
 }
 
+
 public void SendInput(const char[] input)
 {
+	char path[PLATFORM_MAX_PATH];
+	char pawn_name[MAX_NAME_LENGTH];
+	BuildPath(Path_SM, path, sizeof(path), "configs/%s", PLAYER_PAWN_FILE);
+	KeyValues kv = new KeyValues("Player_Pawn");
+	if (!kv.ImportFromFile(path))
+	{
+		PrintToServer("NO FILE");
+		delete kv;
+		return;
+	}
 
-	PrintToServer(input);
+	if (kv.JumpToKey("playername", false))
+	{
+		kv.GetString(NULL_STRING, pawn_name, sizeof(pawn_name));
+		delete kv;
+	}
+
+	PrintToServer("input : %s pawn_name : %s", input, pawn_name);
 }
 
 public Action ord_input_command(int args)
@@ -76,6 +105,7 @@ public Action ord_input_command(int args)
 			return Plugin_Handled;
 		}
 	}
+
     GetCmdArgString(full, sizeof(full));
 	
 	GetCmdArg(1, arg, sizeof(arg));
@@ -89,6 +119,7 @@ public Action ord_input_command(int args)
 	else
 	{
 		ForceChangeLevel("cp_dustbowl", "INVAILD INPUT");
+		return Plugin_Handled;
 	}
 	
 	
@@ -98,9 +129,10 @@ public Action ord_input_command(int args)
 
 public Action ord_render_command(int args)
 {
-if (IsMapValid("ord_ren"))
+	int ordinance_enabled = GetConVarInt(g_ordinance_enabled);
+	if (IsMapValid("ord_ren"))
 	{
-		SendInput("ren");
+		if (ordinance_enabled == 1) {SendInput("ren");}
 		ForceChangeLevel("ord_ren", "RENDER");
 		return Plugin_Handled;
 	}
