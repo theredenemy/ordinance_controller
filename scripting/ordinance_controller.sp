@@ -17,7 +17,7 @@ public Plugin myinfo =
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.2.0",
+	version = "1.2.1",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -73,6 +73,8 @@ public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, 
 	char message[256];
 	if (bFailure || !bRequestSuccessful || statuscode != k_EHTTPStatusCode200OK)
 	{
+		CloseHandle(req);
+		PrintToServer("Close Handle");
 		return 0;
 	}
 	int HTTP_BodySize = 0;
@@ -80,6 +82,9 @@ public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, 
 	if (!SteamWorks_GetHTTPResponseBodySize(req, HTTP_BodySize) || HTTP_BodySize <= 0)
 	{
 		PrintToServer("Response Is Empty or failed to read size");
+		CloneHandle(req);
+		PrintToServer("Close Handle");
+		return 0;
 	}
 	
 	SteamWorks_GetHTTPResponseBodyData(req, data, HTTP_BodySize);
@@ -90,8 +95,15 @@ public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, 
 		PrintToServer("PAWN IS DEAD");
 	}
 	CloseHandle(req);
+	PrintToServer("Close Handle");
 	return 0;
 	 
+}
+public int OnHTTPResponse(Handle req, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
+{
+	CloseHandle(req);
+	PrintToServer("Close Handle");
+	return 0;
 }
 public void SendInput(const char[] input)
 {
@@ -124,6 +136,7 @@ public void SendInput(const char[] input)
 	if (req == INVALID_HANDLE) return;
 	SteamWorks_SetHTTPRequestHeaderValue(req, "Content-Type", "application/json");
 	SteamWorks_SetHTTPRequestRawPostBody(req, "application/json", output, strlen(output));
+	SteamWorks_SetHTTPCallbacks(req, OnHTTPResponse);
 	SteamWorks_SendHTTPRequest(req);
 }
 
