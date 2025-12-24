@@ -1,10 +1,13 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <sourcemod>
+#include <SteamWorks>
+#include <json>
 #pragma newdecls required
 #pragma semicolon 1
 #define MAX_INPUT_LEN 256
 #define PLAYER_PAWN_FILE "player_pawn.txt"
+#define ORDINANCE_SERVER "10.0.0.116:5000"
 
 ConVar g_ordinance_enabled;
 char g_mapname[128];
@@ -13,7 +16,7 @@ public Plugin myinfo =
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.0.1",
+	version = "1.2.0",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -58,6 +61,9 @@ public void SendInput(const char[] input)
 {
 	char path[PLATFORM_MAX_PATH];
 	char pawn_name[MAX_NAME_LENGTH];
+	char output[1024];
+	char url[256];
+	JSON_Object obj = new JSON_Object();
 	BuildPath(Path_SM, path, sizeof(path), "configs/%s", PLAYER_PAWN_FILE);
 	KeyValues kv = new KeyValues("Player_Pawn");
 	if (!kv.ImportFromFile(path))
@@ -74,6 +80,15 @@ public void SendInput(const char[] input)
 	}
 
 	PrintToServer("input : %s pawn_name : %s", input, pawn_name);
+	obj.SetString("input", input);
+	obj.SetString("pawn_name", pawn_name);
+	obj.Encode(output, sizeof(output));
+	Format(url, sizeof(url), "http://%s/ord/input", ORDINANCE_SERVER);
+	Handle req = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, url);
+	if (req == INVALID_HANDLE) return;
+	SteamWorks_SetHTTPRequestHeaderValue(req, "Content-Type", "application/json");
+	SteamWorks_SetHTTPRequestRawPostBody(req, "application/json", output, strlen(output));
+	SteamWorks_SendHTTPRequest(req);
 }
 
 public Action ord_input_command(int args)
