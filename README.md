@@ -28,6 +28,8 @@
 
 ## Requirements ##
 - Sourcemod and Metamod
+- sm-json https://github.com/clugg/sm-json
+- SteamWorks https://github.com/KyleSanderson/SteamWorks https://users.alliedmods.net/~kyles/builds/SteamWorks/
 
 
 ## Installation ##

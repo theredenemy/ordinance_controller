@@ -7,6 +7,7 @@
 #pragma semicolon 1
 #define MAX_INPUT_LEN 256
 #define PLAYER_PAWN_FILE "player_pawn.txt"
+#define PAWN_STATE_FILE "pawn_state.txt"
 #define ORDINANCE_SERVER "10.0.0.116:5000"
 
 ConVar g_ordinance_enabled;
@@ -23,7 +24,9 @@ public Plugin myinfo =
 void makeConfig()
 {
 	char path[PLATFORM_MAX_PATH];
+	char path2[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, path, sizeof(path), "configs/%s", PLAYER_PAWN_FILE);
+	BuildPath(Path_SM, path2, sizeof(path2), "configs/%s", PAWN_STATE_FILE);
 	if (!FileExists(path))
 	{
 		PrintToServer(path);
@@ -32,6 +35,14 @@ void makeConfig()
 		kv.SetString("date", "DECEMBER 31TH 2099");
 		kv.Rewind();
 		kv.ExportToFile(path);
+		delete kv;
+	}
+	if (!FileExists(path2))
+	{
+		KeyValues kv = new KeyValues("Pawn_state");
+		kv.SetString("state", "alive");
+		kv.Rewind();
+		kv.ExportToFile(path2);
 		delete kv;
 	}
 }
@@ -56,7 +67,32 @@ public void OnPluginStart()
 	PrintToServer("ordinance_controller Has Loaded");
 }
 
+public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
+{
+	char data[1024];
+	char message[256];
+	if (bFailure || !bRequestSuccessful || statuscode != k_EHTTPStatusCode200OK)
+	{
+		return 0;
+	}
+	int HTTP_BodySize = 0;
 
+	if (!SteamWorks_GetHTTPResponseBodySize(req, HTTP_BodySize) || HTTP_BodySize <= 0)
+	{
+		PrintToServer("Response Is Empty or failed to read size");
+	}
+	
+	SteamWorks_GetHTTPResponseBodyData(req, data, HTTP_BodySize);
+	JSON_Object obj = json_decode(data);
+	obj.GetString("message", message, sizeof(message));
+	if (StrEqual(message, "ORD_ERROR"))
+	{
+		PrintToServer("PAWN IS DEAD");
+	}
+	CloseHandle(req);
+	return 0;
+	 
+}
 public void SendInput(const char[] input)
 {
 	char path[PLATFORM_MAX_PATH];
@@ -145,9 +181,17 @@ public Action ord_input_command(int args)
 public Action ord_render_command(int args)
 {
 	int ordinance_enabled = GetConVarInt(g_ordinance_enabled);
+	char url[256];
 	if (IsMapValid("ord_ren"))
 	{
-		if (ordinance_enabled == 1) {SendInput("ren");}
+		if (ordinance_enabled == 1) 
+		{
+			Format(url, sizeof(url), "http://%s/ord/input/render", ORDINANCE_SERVER);
+			Handle req = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+			SteamWorks_SetHTTPRequestHeaderValue(req, "Content-Type", "application/json");
+			SteamWorks_SetHTTPCallbacks(req, OnRenderResponse);
+			SteamWorks_SendHTTPRequest(req);
+		}
 		ForceChangeLevel("ord_ren", "RENDER");
 		return Plugin_Handled;
 	}
