@@ -12,12 +12,13 @@
 
 ConVar g_ordinance_enabled;
 char g_mapname[128];
+bool g_ordserveronline;
 public Plugin myinfo =
 {
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.2.1",
+	version = "1.2.2",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -49,11 +50,18 @@ void makeConfig()
 public void OnMapStart()
 {
 	g_mapname = "\0";
+	char url[256];
 	int ordinance_enabled = GetConVarInt(g_ordinance_enabled);
 	GetCurrentMap(g_mapname, sizeof(g_mapname));
 	if (StrEqual(g_mapname, "ordinance"))
 	{
-		if (ordinance_enabled == 1) {SendInput("BEGIN");}
+		if (ordinance_enabled == 1) 
+		{
+			Format(url, sizeof(url), "http://%s", ORDINANCE_SERVER);
+			Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+			SteamWorks_SetHTTPCallbacks(hRequest, CheckOrdServer);
+			SteamWorks_SendHTTPRequest(hRequest);
+		}
 	}
 	
 }
@@ -62,11 +70,16 @@ public void OnPluginStart()
 {
 	makeConfig();
 	g_ordinance_enabled = CreateConVar("ordinance_enabled", "0");
+	g_ordserveronline = false;
 	RegServerCmd("ord_input", ord_input_command);
 	RegServerCmd("ord_render", ord_render_command);
 	PrintToServer("ordinance_controller Has Loaded");
 }
-
+public Action OrdError(Handle timer)
+{
+	ForceChangeLevel("ord_error", "PAWN IS DEAD");
+	return Plugin_Continue;
+}
 public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
 {
 	char data[1024];
@@ -93,11 +106,31 @@ public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, 
 	if (StrEqual(message, "ORD_ERROR"))
 	{
 		PrintToServer("PAWN IS DEAD");
+		CreateTimer(20.0, OrdError);
 	}
 	CloseHandle(req);
 	PrintToServer("Close Handle");
 	return 0;
 	 
+}
+public int CheckOrdServer(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
+{
+	if (bRequestSuccessful && statuscode == k_EHTTPStatusCode200OK)
+	{
+		CloseHandle(hRequest);
+		PrintToServer("Close Handle");
+		g_ordserveronline = true;
+		SendInput("BEGIN");
+		return 0;
+	}
+	else
+	{
+		CloseHandle(hRequest);
+		PrintToServer("Close Handle");
+		g_ordserveronline = false;
+		return 0;
+	}
+
 }
 public int OnHTTPResponse(Handle req, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
 {
@@ -156,7 +189,7 @@ public Action ord_input_command(int args)
 		PrintToServer("[SM] Usage: ord_input <input>");
 		return Plugin_Handled;
 	}
-	if (ordinance_enabled != 1)
+	if (ordinance_enabled != 1 || !g_ordserveronline)
 	{
 		if (IsMapValid("ord_end"))
 		{
