@@ -8,7 +8,7 @@
 #define MAX_INPUT_LEN 256
 #define PLAYER_PAWN_FILE "player_pawn.txt"
 #define PAWN_STATE_FILE "pawn_state.txt"
-#define ORDINANCE_SERVER "10.0.0.116:5000"
+#define ORDINANCE_SERVER "10.0.0.100:5000"
 
 ConVar g_ordinance_enabled;
 char g_mapname[128];
@@ -18,7 +18,7 @@ public Plugin myinfo =
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.2.2",
+	version = "1.2.3",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -161,6 +161,7 @@ public void SendInput(const char[] input)
 	}
 
 	PrintToServer("input : %s pawn_name : %s", input, pawn_name);
+	PrintToChatAll("%s", input);
 	obj.SetString("input", input);
 	obj.SetString("pawn_name", pawn_name);
 	obj.Encode(output, sizeof(output));
