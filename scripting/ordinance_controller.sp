@@ -161,7 +161,6 @@ public void SendInput(const char[] input)
 	}
 
 	PrintToServer("input : %s pawn_name : %s", input, pawn_name);
-	PrintToChatAll("%s", input);
 	obj.SetString("input", input);
 	obj.SetString("pawn_name", pawn_name);
 	obj.Encode(output, sizeof(output));
@@ -209,6 +208,7 @@ public Action ord_input_command(int args)
 	GetCmdArg(1, arg, sizeof(arg));
 	Format(map, sizeof(map), "ord_%sfunc", arg);
 	PrintToServer(map);
+	PrintToChatAll("%s", arg);
 	if (IsMapValid(map))
 	{
 		SendInput(arg);
