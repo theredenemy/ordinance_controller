@@ -18,7 +18,7 @@ public Plugin myinfo =
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.2.3",
+	version = "1.2.6",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -52,9 +52,36 @@ public void OnMapStart()
 	g_mapname = "\0";
 	char url[256];
 	int ordinance_enabled = GetConVarInt(g_ordinance_enabled);
+	char path2[PLATFORM_MAX_PATH];
+	char state[256];
+	BuildPath(Path_SM, path2, sizeof(path2), "configs/%s", PAWN_STATE_FILE);
 	GetCurrentMap(g_mapname, sizeof(g_mapname));
 	if (StrEqual(g_mapname, "ordinance"))
 	{
+		KeyValues kv3 = new KeyValues("Pawn_state");
+		if (!kv3.ImportFromFile(path2))
+		{
+			PrintToServer("NO FILE");
+			delete kv3;
+			return;
+		}
+
+		if (kv3.JumpToKey("state", false))
+		{
+			kv3.GetString(NULL_STRING, state, sizeof(state));
+			delete kv3;
+		}
+		else
+		{
+			delete kv3;
+			state = "alive";
+		}
+		if (StrEqual(state, "dead"))
+		{
+			PrintCenterTextAll("ADMIN: I AM YOU");
+			CreateTimer(20.0, OrdCry);
+			return;
+		}
 		if (ordinance_enabled == 1) 
 		{
 			Format(url, sizeof(url), "http://%s", ORDINANCE_SERVER);
@@ -78,6 +105,17 @@ public void OnPluginStart()
 public Action OrdError(Handle timer)
 {
 	ForceChangeLevel("ord_error", "PAWN IS DEAD");
+	return Plugin_Continue;
+}
+public Action OrdEnd(Handle timer)
+{
+	ForceChangeLevel("ord_end", "NO INPUT");
+	return Plugin_Continue;
+}
+public Action OrdCry(Handle timer)
+{
+	// Do You take Arbys Gift cards
+	ForceChangeLevel("ord_cry", "FUCKING DIE");
 	return Plugin_Continue;
 }
 public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
@@ -107,6 +145,11 @@ public int OnRenderResponse(Handle req, bool bFailure, bool bRequestSuccessful, 
 	{
 		PrintToServer("PAWN IS DEAD");
 		CreateTimer(20.0, OrdError);
+	}
+	else if(StrEqual(message, "NO_INPUT"))
+	{
+		PrintToServer("NO_INPUT");
+		CreateTimer(20.0, OrdEnd);
 	}
 	CloseHandle(req);
 	PrintToServer("Close Handle");
@@ -208,7 +251,7 @@ public Action ord_input_command(int args)
 	GetCmdArg(1, arg, sizeof(arg));
 	Format(map, sizeof(map), "ord_%sfunc", arg);
 	PrintToServer(map);
-	PrintToChatAll("%s", arg);
+	PrintToChatAll(arg);
 	if (IsMapValid(map))
 	{
 		SendInput(arg);
