@@ -18,7 +18,7 @@ public Plugin myinfo =
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.2.6",
+	version = "1.2.7",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -100,6 +100,7 @@ public void OnPluginStart()
 	g_ordserveronline = false;
 	RegServerCmd("ord_input", ord_input_command);
 	RegServerCmd("ord_render", ord_render_command);
+	RegServerCmd("ord_clear", ord_clear_command);
 	PrintToServer("ordinance_controller Has Loaded");
 }
 public Action OrdError(Handle timer)
@@ -215,7 +216,11 @@ public void SendInput(const char[] input)
 	SteamWorks_SetHTTPCallbacks(req, OnHTTPResponse);
 	SteamWorks_SendHTTPRequest(req);
 }
-
+public Action ord_clear_command(int args)
+{
+	SendInput("BEGIN");
+	return Plugin_Handled;
+}
 public Action ord_input_command(int args)
 {
 	char arg[MAX_INPUT_LEN];
