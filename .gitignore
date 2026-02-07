@@ -1,2 +1,10 @@
 .vscode/
 *.smx
+/.venv
+/sourcemod-linux
+/sourcemod-win
+/ordinance_controller_archive
+ordinance_controller.tar.gz
+ordinance_controller.zip
+sourcemod-win.zip
+sourcemod-linux.zip
