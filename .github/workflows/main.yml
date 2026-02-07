@@ -38,7 +38,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: submit-pawn
+        name: ordinance_controller
         path: |
           ordinance_controller.zip
           ordinance_controller.tar.gz

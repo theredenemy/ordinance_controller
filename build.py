@@ -14,6 +14,7 @@ archive = None
 archive_files = False
 plugins_dir = os.path.join(maindir, "plugins")
 scripting_dir = os.path.join(maindir, "scripting")
+cfgs_dir = os.path.join(maindir, "cfg")
 
 plugin_name = "ordinance_controller"
 
@@ -110,6 +111,7 @@ if archive_files is True:
     os.mkdir(archive_dir)
     shutil.copytree(scripting_dir, os.path.join(archive_dir, "scripting"), dirs_exist_ok=True)
     shutil.copytree(plugins_dir, os.path.join(archive_dir, "plugins"), dirs_exist_ok=True)
+    shutil.copytree(cfgs_dir, os.path.join(archive_dir, "cfgs"), dirs_exist_ok=True)
     download_file("https://users.alliedmods.net/~kyles/builds/SteamWorks/SteamWorks-git132-windows.zip", os.path.join(archive_dir, "SteamWorks-git132-windows.zip"))
     download_file("https://users.alliedmods.net/~kyles/builds/SteamWorks/SteamWorks-git132-linux.tar.gz", os.path.join(archive_dir, "SteamWorks-git132-linux.tar.gz"))
     shutil.make_archive(base_name=plugin_name, format="zip", root_dir=maindir, base_dir=archive_dir_name)
