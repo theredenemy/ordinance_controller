@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!no-bulid-**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14'
+    
+    - name: Install Build Script dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r build_requirements.txt
+    
+    - name: Run Build Script
+      run: |
+        dir
+        tree
+        git submodule update --init --recursive
+        python build.py --archive
+        dir
+        tree
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ordinance_controller
+        path: |
+          ordinance_controller.zip
+          ordinance_controller.tar.gz
+          ordinance_controller_archive/
+    
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/v')
+      with:
+        files: |
+          ordinance_controller.zip
+          ordinance_controller.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
