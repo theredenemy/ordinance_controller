@@ -18,7 +18,7 @@ public Plugin myinfo =
 	name = "ordinance_controller",
 	author = "TheRedEnemy",
 	description = "",
-	version = "1.2.7",
+	version = "1.2.8",
 	url = "https://github.com/theredenemy/ordinance_controller"
 };
 
@@ -101,6 +101,7 @@ public void OnPluginStart()
 	RegServerCmd("ord_input", ord_input_command);
 	RegServerCmd("ord_render", ord_render_command);
 	RegServerCmd("ord_clear", ord_clear_command);
+	RegServerCmd("ord_getinputs", ord_get_inputs);
 	PrintToServer("ordinance_controller Has Loaded");
 }
 public Action OrdError(Handle timer)
@@ -181,6 +182,38 @@ public int OnHTTPResponse(Handle req, bool bFailure, bool bRequestSuccessful, EH
 	CloseHandle(req);
 	PrintToServer("Close Handle");
 	return 0;
+}
+public int OnGetInputsResponse(Handle req, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode statuscode)
+{
+	char data[1024];
+	char message[2048];
+	if (bFailure || !bRequestSuccessful || statuscode != k_EHTTPStatusCode200OK)
+	{
+		CloseHandle(req);
+		PrintToServer("Close Handle");
+		return 0;
+	}
+	int HTTP_BodySize = 0;
+
+	if (!SteamWorks_GetHTTPResponseBodySize(req, HTTP_BodySize) || HTTP_BodySize <= 0)
+	{
+		PrintToServer("Response Is Empty or failed to read size");
+		CloneHandle(req);
+		PrintToServer("Close Handle");
+		return 0;
+	}
+	
+	SteamWorks_GetHTTPResponseBodyData(req, data, HTTP_BodySize);
+	JSON_Object obj = json_decode(data);
+	obj.GetString("message", message, sizeof(message));
+	if (message[0])
+	{
+		PrintToConsoleAll(message);
+	}
+	CloseHandle(req);
+	PrintToServer("Close Handle");
+	return 0;
+	 
 }
 public void SendInput(const char[] input)
 {
@@ -295,4 +328,19 @@ public Action ord_render_command(int args)
 		ForceChangeLevel("cp_dustbowl", "NO MAP");
 		return Plugin_Handled;
 	}
+}
+
+public Action ord_get_inputs(int args)
+{
+	int ordinance_enabled = GetConVarInt(g_ordinance_enabled);
+	char url[256];
+	if (ordinance_enabled == 1) 
+	{
+		Format(url, sizeof(url), "http://%s/ord/input", ORDINANCE_SERVER);
+		Handle req = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
+		SteamWorks_SetHTTPRequestHeaderValue(req, "Content-Type", "application/json");
+		SteamWorks_SetHTTPCallbacks(req, OnGetInputsResponse);
+		SteamWorks_SendHTTPRequest(req);
+	}
+	return Plugin_Handled;
 }
