@@ -1,3 +1,4 @@
+# MOVED TO https://github.com/theredenemy/ordinance
 <div align="center">
   <h1><code>ordinance_controller</code></h1>
   <p>
@@ -20,7 +21,7 @@
         src="https://img.shields.io/github/repo-size/theredenemy/ordinance_controller"
     />
     <img
-        src="https://img.shields.io/github/workflow/status/theredenemy/ordinance_controller/Compile%20and%20release"
+        src="https://img.shields.io/github/workflow/status/theredenemy/ordinance_controller/Build%20and%20release"
     />
   </p>
 </div>
